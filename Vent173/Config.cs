@@ -15,16 +15,34 @@ namespace Vent173
         /// <inheritdoc />
         public bool IsEnabled { get; set; } = true;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether Scp173 can vent on the surface zone.
+        /// </summary>
         public bool CanVentOnSurface { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether Scp173 can vent through locked doors.
+        /// </summary>
         public bool CanVentThroughLocks { get; set; } = false;
 
+        /// <summary>
+        /// Gets or sets the set cooldown for the vent ability when the round starts.
+        /// </summary>
         public float InitialDelay { get; set; } = 30f;
 
+        /// <summary>
+        /// Gets or sets the duration of the vent ability.
+        /// </summary>
         public float VentDuration { get; set; } = 10f;
 
+        /// <summary>
+        /// Gets or sets the amount of cooldown time between abilities.
+        /// </summary>
         public float Cooldown { get; set; } = 30f;
 
+        /// <summary>
+        /// Gets or sets the amount of seconds after exiting the vent ability before Scp173 can attack.
+        /// </summary>
         public float KillCooldown { get; set; } = 1.5f;
     }
 }

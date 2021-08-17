@@ -5,8 +5,6 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Interactables.Interobjects.DoorUtils;
-
 namespace Vent173.Managers
 {
     using Exiled.API.Features;

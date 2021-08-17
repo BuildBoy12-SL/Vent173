@@ -13,6 +13,9 @@ namespace Vent173.Commands
     using RemoteAdmin;
     using Vent173.Components;
 
+    /// <summary>
+    /// Command to initialize and deactivate venting for Scp173.
+    /// </summary>
     [CommandHandler(typeof(ClientCommandHandler))]
     public class Vent : ICommand
     {

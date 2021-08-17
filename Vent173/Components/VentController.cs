@@ -5,15 +5,15 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using Exiled.API.Extensions;
-
 namespace Vent173.Components
 {
     using System;
     using System.Collections.Generic;
     using CustomPlayerEffects;
     using Exiled.API.Enums;
+    using Exiled.API.Extensions;
     using Exiled.API.Features;
+    using Interactables.Interobjects.DoorUtils;
     using MEC;
     using UnityEngine;
     using Vent173.Managers;
@@ -138,21 +138,13 @@ namespace Vent173.Components
             Player.SessionVariables.Remove("IsVenting");
         }
 
-        private IEnumerator<float> ToggleDoors(bool hide)
-        {
-            foreach (var door in Map.Doors)
-            {
-                Player.SendFakeSyncVar(door.netIdentity, typeof(Transform), nameof(Transform.localScale), hide ? Vector3.zero : Vector3.one);
-                yield return Timing.WaitForOneFrame;
-            }
-        }
-
         private void Awake()
         {
             Player = Player.Get(gameObject);
             Plugin = Plugin.Instance;
             eventHandlers = new EventHandlers(this);
             eventHandlers.SubscribeAll();
+            Player.Broadcast(Plugin.Translation.Spawn, true);
         }
 
         private void Update()
@@ -172,15 +164,6 @@ namespace Vent173.Components
             UpdateCooldowns();
         }
 
-        private void UpdateCooldowns()
-        {
-            if (abilityCooldown != 0f)
-                abilityCooldown = Mathf.Clamp(abilityCooldown -= Time.deltaTime, 0f, Plugin.Config.Cooldown);
-
-            if (attackCooldown != 0f)
-                attackCooldown = Mathf.Clamp(attackCooldown -= Time.deltaTime, 0f, Plugin.Config.KillCooldown);
-        }
-
         private void OnDestroy()
         {
             Timing.KillCoroutines(abilityCoroutine, readyCoroutine);
@@ -190,6 +173,15 @@ namespace Vent173.Components
                 return;
 
             StopVenting();
+        }
+
+        private void UpdateCooldowns()
+        {
+            if (abilityCooldown != 0f)
+                abilityCooldown = Mathf.Clamp(abilityCooldown -= Time.deltaTime, 0f, Plugin.Config.Cooldown);
+
+            if (attackCooldown != 0f)
+                attackCooldown = Mathf.Clamp(attackCooldown -= Time.deltaTime, 0f, Plugin.Config.KillCooldown);
         }
 
         private IEnumerator<float> RunAbilityCoroutine()
@@ -202,6 +194,21 @@ namespace Vent173.Components
         {
             yield return Timing.WaitForSeconds(Plugin.Config.Cooldown);
             Player.Broadcast(Plugin.Translation.Ready, true);
+        }
+
+        private IEnumerator<float> ToggleDoors(bool hide)
+        {
+            foreach (var door in Map.Doors)
+            {
+                var requiredPermissions = door.RequiredPermissions.RequiredPermissions;
+                if (!Plugin.Config.CanVentThroughLocks &&
+                    requiredPermissions != KeycardPermissions.None &&
+                    requiredPermissions != KeycardPermissions.Checkpoints)
+                    continue;
+
+                Player.SendFakeSyncVar(door.netIdentity, typeof(DoorVariant), nameof(DoorVariant.NetworkTargetState), !hide);
+                yield return Timing.WaitForOneFrame;
+            }
         }
     }
 }
