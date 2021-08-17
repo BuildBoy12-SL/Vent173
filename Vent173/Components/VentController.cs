@@ -5,12 +5,11 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-using System.Globalization;
-
 namespace Vent173.Components
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using CustomPlayerEffects;
     using Exiled.API.Enums;
     using Exiled.API.Extensions;
