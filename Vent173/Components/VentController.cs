@@ -24,6 +24,7 @@ namespace Vent173.Components
     /// </summary>
     public class VentController : MonoBehaviour
     {
+        private Plugin plugin;
         private EventHandlers eventHandlers;
         private CoroutineHandle abilityCoroutine;
         private CoroutineHandle readyCoroutine;
@@ -41,11 +42,6 @@ namespace Vent173.Components
         public Player Player { get; private set; }
 
         /// <summary>
-        /// Gets the main plugin instance.
-        /// </summary>
-        public Plugin Plugin { get; private set; }
-
-        /// <summary>
         /// Gets a value indicating whether the Player is venting.
         /// </summary>
         public bool IsVenting { get; private set; }
@@ -60,7 +56,7 @@ namespace Vent173.Components
             if (IsVenting)
             {
                 StopVenting();
-                response = Plugin.Translation.Ending.Content;
+                response = plugin.Translation.Ending.Content;
                 return true;
             }
 
@@ -86,26 +82,26 @@ namespace Vent173.Components
 
         private bool TryVent(out string response)
         {
-            if (!Plugin.Config.CanVentOnSurface && Player.Zone == ZoneType.Surface)
+            if (!plugin.Config.CanVentOnSurface && Player.Zone == ZoneType.Surface)
             {
-                response = Plugin.Translation.CannotVentOnSurface;
+                response = plugin.Translation.CannotVentOnSurface;
                 return false;
             }
 
             if (InitialDelay)
             {
-                response = Plugin.Translation.OnCooldown.Replace("%seconds", (Plugin.Config.InitialDelay - (int)Round.ElapsedTime.TotalSeconds).ToString(CultureInfo.CurrentCulture));
+                response = plugin.Translation.OnCooldown.Replace("%seconds", (plugin.Config.InitialDelay - (int)Round.ElapsedTime.TotalSeconds).ToString(CultureInfo.CurrentCulture));
                 return false;
             }
 
             if (abilityCooldown != 0f)
             {
-                response = Plugin.Translation.OnCooldown.Replace("%seconds", ((int)abilityCooldown).ToString());
+                response = plugin.Translation.OnCooldown.Replace("%seconds", ((int)abilityCooldown).ToString());
                 return false;
             }
 
             StartVenting();
-            response = Plugin.Translation.Activation.Content;
+            response = plugin.Translation.Activation.Content;
             return true;
         }
 
@@ -120,7 +116,7 @@ namespace Vent173.Components
             scp207.Intensity = 4;
             Player.EnableEffect(scp207);
 
-            Player.Broadcast(Plugin.Translation.Activation, true);
+            Player.Broadcast(plugin.Translation.Activation, true);
 
             abilityCoroutine = Timing.RunCoroutine(RunAbilityCoroutine());
 
@@ -139,8 +135,8 @@ namespace Vent173.Components
             Timing.KillCoroutines(abilityCoroutine);
             readyCoroutine = Timing.RunCoroutine(RunReadyCoroutine());
 
-            abilityCooldown = Plugin.Config.Cooldown;
-            attackCooldown = Plugin.Config.KillCooldown;
+            abilityCooldown = plugin.Config.Cooldown;
+            attackCooldown = plugin.Config.KillCooldown;
 
             Player.SessionVariables.Remove("IsVenting");
         }
@@ -148,10 +144,10 @@ namespace Vent173.Components
         private void Awake()
         {
             Player = Player.Get(gameObject);
-            Plugin = Plugin.Instance;
+            plugin = Plugin.Instance;
             eventHandlers = new EventHandlers(this);
             eventHandlers.SubscribeAll();
-            Player.Broadcast(Plugin.Translation.Spawn, true);
+            Player.Broadcast(plugin.Translation.Spawn, true);
         }
 
         private void Update()
@@ -162,7 +158,7 @@ namespace Vent173.Components
                 return;
             }
 
-            if (IsVenting && !Plugin.Config.CanVentOnSurface && Player.Zone == ZoneType.Surface)
+            if (IsVenting && !plugin.Config.CanVentOnSurface && Player.Zone == ZoneType.Surface)
             {
                 Timing.KillCoroutines(abilityCoroutine);
                 StopVenting();
@@ -185,22 +181,22 @@ namespace Vent173.Components
         private void UpdateCooldowns()
         {
             if (abilityCooldown != 0f)
-                abilityCooldown = Mathf.Clamp(abilityCooldown -= Time.deltaTime, 0f, Plugin.Config.Cooldown);
+                abilityCooldown = Mathf.Clamp(abilityCooldown -= Time.deltaTime, 0f, plugin.Config.Cooldown);
 
             if (attackCooldown != 0f)
-                attackCooldown = Mathf.Clamp(attackCooldown -= Time.deltaTime, 0f, Plugin.Config.KillCooldown);
+                attackCooldown = Mathf.Clamp(attackCooldown -= Time.deltaTime, 0f, plugin.Config.KillCooldown);
         }
 
         private IEnumerator<float> RunAbilityCoroutine()
         {
-            yield return Timing.WaitForSeconds(Plugin.Config.VentDuration);
+            yield return Timing.WaitForSeconds(plugin.Config.VentDuration);
             StopVenting();
         }
 
         private IEnumerator<float> RunReadyCoroutine()
         {
-            yield return Timing.WaitForSeconds(Plugin.Config.Cooldown);
-            Player.Broadcast(Plugin.Translation.Ready, true);
+            yield return Timing.WaitForSeconds(plugin.Config.Cooldown);
+            Player.Broadcast(plugin.Translation.Ready, true);
         }
 
         private IEnumerator<float> ToggleDoors(bool hide)
@@ -208,7 +204,7 @@ namespace Vent173.Components
             foreach (var door in Map.Doors)
             {
                 var requiredPermissions = door.RequiredPermissions.RequiredPermissions;
-                if (!Plugin.Config.CanVentThroughLocks &&
+                if (!plugin.Config.CanVentThroughLocks &&
                     requiredPermissions != KeycardPermissions.None &&
                     requiredPermissions != KeycardPermissions.Checkpoints)
                     continue;
