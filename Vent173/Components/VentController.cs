@@ -5,6 +5,8 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Globalization;
+
 namespace Vent173.Components
 {
     using System;
@@ -88,6 +90,12 @@ namespace Vent173.Components
             if (!Plugin.Config.CanVentOnSurface && Player.Zone == ZoneType.Surface)
             {
                 response = Plugin.Translation.CannotVentOnSurface;
+                return false;
+            }
+
+            if (InitialDelay)
+            {
+                response = Plugin.Translation.OnCooldown.Replace("%seconds", (Plugin.Config.InitialDelay - (int)Round.ElapsedTime.TotalSeconds).ToString(CultureInfo.CurrentCulture));
                 return false;
             }
 
